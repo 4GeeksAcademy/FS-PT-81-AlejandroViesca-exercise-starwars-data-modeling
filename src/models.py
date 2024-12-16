@@ -1,32 +1,49 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, DateTime, Enum
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class Products(Base):
+    __tablename__ = 'products'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    name = Column(String, unique=True)
+    pricing = Column(Float)
+    weight = Column(Float)
+    color = Column(String)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+class Customers(Base):
+    __tablename__ = 'customers'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    first_name = Column(String)
+    last_name = Column(String)
+    email = Column(String, unique=True)
+    address = Column(String)
 
-    def to_dict(self):
-        return {}
+class Shopping_Carts(Base):
+    __tablename__ = 'shopping_carts'
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer)
+    price = Column(Float)
+
+    product_id = Column(Integer, ForeignKey('products.id'))
+    customer_id = Column(Integer, ForeignKey('customers.id'))
+    bill_id = Column(Integer, ForeignKey('bills.id'))
+
+    product = relationship('Products', backref='shopping_carts')
+    customer = relationship('Customers', backref='shopping_carts')
+    bill = relationship('Bills', backref='shopping_carts')
+
+
+class Bills(Base):
+    __tablename__ = 'bills'
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime)
+    total_price = Column(Float)
+    status = Column(Enum("paid","pending","refunded", name="status_enum"))
 
 ## Draw from SQLAlchemy base
 render_er(Base, 'diagram.png')
